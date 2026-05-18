@@ -25,7 +25,7 @@ from rapidfuzz import fuzz
 
 VENDOR_CSV = "List_of_Vendors.csv"
 CREDENTIALS = "credentials.json"
-FUZZY_THRESHOLD = 88
+FUZZY_THRESHOLD = 85
 HEADER_ROW = 6
 DR_FLAG = "DR"
 
