@@ -116,3 +116,6 @@ Back in the app, click **🔄 Reload vendor list** in the sidebar — no restart
 | `403 Forbidden` from Google | The service account may not have Drive access — confirm both APIs are enabled |
 | Transaction missing from output | It may be a CR entry (filtered out) or unclassified — check the Unclassified tab |
 | Vendor matched incorrectly | Lower the fuzzy threshold in `app.py` (`FUZZY_THRESHOLD = 85`) or make the keyword more specific in the CSV |
+
+---
+**Author** : Ramakrishna
