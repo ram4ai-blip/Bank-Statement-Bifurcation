@@ -25,7 +25,7 @@ from rapidfuzz import fuzz
 
 VENDOR_CSV = "List_of_Vendors.csv"
 CREDENTIALS = "credentials.json"
-FUZZY_THRESHOLD = 85
+FUZZY_THRESHOLD = 88
 HEADER_ROW = 6
 DR_FLAG = "DR"
 
@@ -54,7 +54,7 @@ PIVOT_COLS = [
 EXCLUDE_SUBSTRINGS = [
     "salary", "stipend", "incentive", "bonus", "fnf", "fnfsettl",
     "full time", "fte salary", "salarystipend", "buld",
-    "onetime", "one time", "partsalary", "reimburs",
+    "onetime", "one time", "partsalary", "reimburs" "Interns" "Ops" "ops",
 ]
 
 EXCLUDE_TOKENS = {"ceo", "intern"}
