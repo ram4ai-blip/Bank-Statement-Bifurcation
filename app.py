@@ -14,6 +14,7 @@ import io
 import math
 import os
 import re
+import openpyxl
 
 import gspread
 import pandas as pd
@@ -87,6 +88,13 @@ def is_payroll(description: str) -> bool:
 
 # ── Data helpers ──────────────────────────────────────────────────────────────
 
+def get_engine(file_bytes: bytes) -> str:
+    """Detect XLS vs XLSX from magic bytes and return the correct pandas engine."""
+    # XLSX is a ZIP file → starts with PK magic bytes
+    # XLS is OLE2 compound doc → starts with 0xD0 0xCF
+    return "openpyxl" if file_bytes[:2] == b'PK' else "xlrd"
+
+
 @st.cache_data
 def load_vendors() -> pd.DataFrame:
     df = pd.read_csv(VENDOR_CSV)
@@ -106,7 +114,7 @@ def build_display_map(vendors_df: pd.DataFrame) -> dict:
 
 
 def get_sheet_names(file_bytes: bytes) -> list[str]:
-    xl = pd.ExcelFile(io.BytesIO(file_bytes), engine="xlrd")
+    xl = pd.ExcelFile(io.BytesIO(file_bytes), engine=get_engine(file_bytes))
     return xl.sheet_names
 
 
@@ -132,7 +140,7 @@ def process_sheet(
     raw = pd.read_excel(
         io.BytesIO(file_bytes),
         sheet_name=sheet_name,
-        engine="xlrd",
+        engine=get_engine(file_bytes),
         header=HEADER_ROW,
     )
     raw.columns = raw.columns.str.strip()
@@ -315,22 +323,8 @@ def push_to_sheets(
     excluded_df:     pd.DataFrame,
     tax_df:          pd.DataFrame,
 ) -> tuple[str, str]:
-    """
-    Write data into the user's existing Google Sheet.
-
-    Tab behaviour
-    ─────────────
-    • Matched tab        → new tab per month, collision-safe name
-    • Unclassified       → single tab, appended across months
-    • Pivot              → single tab, appended (has Month column for filtering)
-    • Salary & Internal  → single tab, appended across months
-    • Tax & Government   → single tab, appended across months
-
-    Returns (sheet_url, actual_tab_name_used)
-    """
     ss = client.open_by_url(sheet_url)
 
-    # ── Matched tab: brand-new each month ─────────────────────────────────────
     actual_name = safe_tab_name(ss, tab_name)
     ws_main = ss.add_worksheet(
         title=actual_name,
@@ -340,7 +334,6 @@ def push_to_sheets(
     ws_main.update(to_gspread_values(matched_df))
     ws_main.format("A1:E1", {"textFormat": {"bold": True}})
 
-    # Remove default blank Sheet1 if present
     try:
         blank = ss.worksheet("Sheet1")
         if not blank.get_all_values():
@@ -348,7 +341,6 @@ def push_to_sheets(
     except Exception:
         pass
 
-    # ── Shared tabs: append ───────────────────────────────────────────────────
     append_to_tab(ss, "Unclassified",      unclassified_df, OUTPUT_COLS)
     append_to_tab(ss, "Pivot",             pivot_df,        PIVOT_COLS)
     append_to_tab(ss, "Salary & Internal", excluded_df,     OUTPUT_COLS)
@@ -383,7 +375,7 @@ def main():
 
     st.title("💳 Vendor Transaction Tracker")
     st.caption(
-        "Upload a monthly bank XLS → filter debits → exclude payroll & tax → "
+        "Upload a monthly bank XLS/XLSX → filter debits → exclude payroll & tax → "
         "match vendors → preview → push to Google Sheet."
     )
 
@@ -433,7 +425,7 @@ def main():
     st.markdown("---")
     st.markdown("### Step 1 — Upload transaction file")
     uploaded = st.file_uploader(
-        "Drag & drop your bank statement here (XLS format)", type=["xls"]
+        "Drag & drop your bank statement here (XLS or XLSX format)", type=["xls", "xlsx"]
     )
     if not uploaded:
         st.info("Waiting for a file…")
@@ -443,7 +435,7 @@ def main():
     try:
         sheet_names = get_sheet_names(file_bytes)
     except Exception as exc:
-        st.error(f"Could not read XLS file: {exc}")
+        st.error(f"Could not read file: {exc}")
         st.stop()
 
     # ── Step 2: Sheet selection ───────────────────────────────────────────────
