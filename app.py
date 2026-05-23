@@ -55,7 +55,7 @@ PIVOT_COLS = [
 EXCLUDE_SUBSTRINGS = [
     "salary", "stipend", "incentive", "bonus", "fnf", "fnfsettl",
     "full time", "fte salary", "salarystipend", "buld",
-    "onetime", "one time", "partsalary", "reimburs" "Interns" "Ops" "ops",
+    "onetime", "one time", "partsalary", "reimburs" "Interns" "Ops" "ops" "interns" "intern",
 ]
 
 EXCLUDE_TOKENS = {"ceo", "intern"}

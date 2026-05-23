@@ -66,7 +66,9 @@ The file must have these three columns (exact names):
 - If the same `Key Word` appears on multiple rows (e.g. `Prestige` for three properties), the app automatically consolidates them — the keyword itself becomes the display name.
 - Keywords are matched **case-insensitively** with fuzzy tolerance (threshold: 85/100), so minor variations in bank descriptions are handled automatically.
 - To add a new vendor: add a new row to the CSV and restart the app (or click "Reload vendor list" in the sidebar).
-
+- The list of vendors key words and description should be updated as the new vendors flow into bank statements
+- Code is not a brain to understand the logic its just working on pre set guardrails no AI is used for functioning
+- This will work only when the files are there in a particular set manner if they have a different cell location in the excel file then the code wont execute
 ---
 
 ## Running the app
